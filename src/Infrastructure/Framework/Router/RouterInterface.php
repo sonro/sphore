@@ -6,7 +6,7 @@ namespace Sphore\Infrastructure\Framework\Router;
 
 interface RouterInterface
 {
-    public function getRoute(string $path): ?Route;
+    public function getRoute(string $path, string $method): ?Route;
 
     public function addRoute(Route $route): void;
 

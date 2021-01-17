@@ -6,12 +6,16 @@ namespace Sphore\Infrastructure\Framework\Router;
 
 class DeterminedRoute extends Route
 {
-
     public function __construct(
 		Route $route,
 		public string $regex,
 		public array $slugs,
     ) {
-		parent::__construct($route->path, $route->controllerClass, $route->method);
+		parent::__construct(
+			$route->path, 
+			$route->controllerClass,
+			$route->action,
+			$route->methods,
+		);
 	}
 }

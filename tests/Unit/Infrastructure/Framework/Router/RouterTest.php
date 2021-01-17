@@ -13,20 +13,20 @@ class RouterTest extends TestCase
 	public function testEmptyRouterGetsNull()
 	{
 		$router = new Router();
-		$this->assertNull($router->getRoute("/"));
+		$this->assertNull($router->getRoute("/", "GET"));
 	}
 
 	public function testEmptyRouterAddOneRouteNotMatching()
 	{
 		$router = $this->routerWithOneRoute("/test/route");
-		$this->assertNull($router->getRoute("/"));
+		$this->assertNull($router->getRoute("/", "GET"));
 	}
 
 	public function testEmptyRouterAddOneRouteMatching()
 	{
 		$path = "/test/route";
 		$router = $this->routerWithOneRoute($path);
-		$result = $router->getRoute($path);
+		$result = $router->getRoute($path, "GET");
 		$this->assertNotNull($result);
 		$this->assertEquals($path, $result->path);
 	}
@@ -34,9 +34,27 @@ class RouterTest extends TestCase
 	public function testAddDeterminedRoute()
 	{
 		$router = $this->routerWithOneRoute("/test/{slug}");
-		$result = $router->getRoute("/test/50");
+		$result = $router->getRoute("/test/50", "GET");
 		$this->assertNotNull($result);
 		$this->assertEquals($result->slugs["slug"], "50");
+	}
+
+	public function testResolveRouteByMethod()
+	{
+		$path = "/test";
+		$controllerClass = "ControllerClass";
+		$router = new Router();
+		$router->addRoutes([
+			new Route($path, $controllerClass, "getMethod", ["GET"]),
+			new Route($path, $controllerClass, "postMethod", ["POST"]),
+		]);
+
+		$getRouteResult = $router->getRoute($path, "GET");
+		$postRouteResult = $router->getRoute($path, "POST");
+		$this->assertNotNull($getRouteResult);
+		$this->assertNotNull($postRouteResult);
+		$this->assertNotEquals($getRouteResult, $postRouteResult, "Post route should have different action");
+		
 	}
 
 	private function routerWithOneRoute($path): Router

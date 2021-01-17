@@ -9,7 +9,10 @@ class Route
     public function __construct(
         public string $path,
         public string $controllerClass,
-        public string $method,
+        public string $action,
+		public array $methods = [
+			"DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT",
+		],
     ) {
 	}
 }
