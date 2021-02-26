@@ -8,13 +8,16 @@ class PathResolver
 {
     public function getRegex(array $slugs, string $path): string
     {
+		// escape / in regex string
         $regex = str_replace('/', '\/', $path);
+
         foreach ($slugs as $slug) {
             // generate regex named subgroup in place of each slug
             $regex = str_replace('{'.$slug.'}', "(?<$slug>\w+)", $regex);
         }
 
-        return "/$regex/";
+		// add beginning and end regex match to stop longer paths being matched
+        return "/^$regex$/";
     }
 
     public function resolvePath(string $pathRegex, string $path): PathResolverResult
