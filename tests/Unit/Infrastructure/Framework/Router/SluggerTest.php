@@ -9,36 +9,38 @@ use Sphore\Infrastructure\Framework\Router\Slugger;
 
 class SluggerTest extends TestCase
 {
-    private Slugger $slugger;
-
-    protected function setUp(): void
+    public function test_empty_path()
     {
-        $this->slugger = new Slugger();
-    }
-
-    public function testEmptyPath()
-    {
-        $slugs = $this->slugger->getSlugsFromPath('');
+		$slugger = $this->createSlugger();
+        $slugs = $slugger->getSlugsFromPath('');
         $this->assertEmpty($slugs);
     }
 
-    public function testNoSlugs()
+    public function test_no_slugs()
     {
-        $slugs = $this->slugger->getSlugsFromPath('/test/path');
+		$slugger = $this->createSlugger();
+        $slugs = $slugger->getSlugsFromPath('/test/path');
         $this->assertEmpty($slugs);
     }
 
-    public function testOneSlug()
+    public function test_one_slugs()
     {
-        $slugs = $this->slugger->getSlugsFromPath('/test/{slug}');
+		$slugger = $this->createSlugger();
+        $slugs = $slugger->getSlugsFromPath('/test/{slug}');
         $this->assertNotEmpty($slugs);
         $this->assertEquals(['slug'], $slugs);
     }
 
-    public function testTwoSlugs()
+    public function test_two_slugs()
     {
-        $slugs = $this->slugger->getSlugsFromPath('/test/{slug}/another/{id}');
+		$slugger = $this->createSlugger();
+        $slugs = $slugger->getSlugsFromPath('/test/{slug}/another/{id}');
         $this->assertNotEmpty($slugs);
         $this->assertEquals(['slug', 'id'], $slugs);
     }
+
+	private function createSlugger(): Slugger
+	{
+		return new Slugger();
+	}
 }

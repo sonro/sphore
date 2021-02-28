@@ -22,7 +22,7 @@ class PathResolver
 
     public function resolvePath(string $pathRegex, string $path): PathResolverResult
     {
-		if ($pathRegex === "//") {
+		if ($pathRegex === "/^$/") {
             throw new \InvalidArgumentException('Regex must not be empty');
 		}
 
