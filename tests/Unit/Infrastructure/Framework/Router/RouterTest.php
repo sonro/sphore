@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sphore\Test\Unit\Infrastructure\Framework\Router;
+namespace Sphore\Tests\Unit\Infrastructure\Framework\Router;
 
 use PHPUnit\Framework\TestCase;
 use Sphore\Infrastructure\Framework\Router\DeterminedRoute;
