@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sphore\Infrastructure\Framework\Http;
 
 class Request
