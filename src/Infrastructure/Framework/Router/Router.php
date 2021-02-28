@@ -6,39 +6,34 @@ namespace Sphore\Infrastructure\Framework\Router;
 
 class Router implements RouterInterface
 {
+	/**
+	 * @var Route[][]
+	 */
     protected array $routes = [];
 
+	/**
+	 * @var DeterminedRoute[][]
+	 */
     protected array $determinedRoutes = [];
 
-    protected PathResolver $pathResolver;
-
-    protected Slugger $slugger;
-
-    public function __construct()
-    {
-        $this->pathResolver = new PathResolver();
-        $this->slugger = new Slugger();
+    public function __construct(
+        protected PathResolver $pathResolver,
+        protected DeterminedRouteFactory $determinedRouteFactory,
+    ) {
     }
 
-    public function getRoute(string $path, string $method): Route|DeterminedRoute|null
+    public function getRoute(string $path, string $method): Route | DeterminedRoute | null
     {
-		return $this->checkRoutes($path, $method) 
-			?? $this->checkDeterminedRoutes($path, $method);
-	}
+        return $this->checkRoutes($path, $method)
+            ?? $this->checkDeterminedRoutes($path, $method);
+    }
 
     public function addRoute(Route $route): void
     {
         if (str_contains($route->path, '{')) {
-            $slugs = $this->slugger->getSlugsFromPath($route->path);
-            $regex = $this->pathResolver->getRegex($slugs, $route->path);
-            $determinedRoute = new DeterminedRoute($route, $regex, $slugs);
-			foreach($determinedRoute->methods as $method) {
-				$this->determinedRoutes[$method][] = $determinedRoute;
-			}
+            $this->addDeterminedRoute($route);
         } else {
-			foreach($route->methods as $method) {
-				$this->routes[$method][$route->path] = $route;
-			}
+            $this->addStandardRoute($route);
         }
     }
 
@@ -49,38 +44,62 @@ class Router implements RouterInterface
         }
     }
 
-	private function checkRoutes(string $path, string $method): Route|null
-	{
-		return $this->routes[$method][$path] ?? null;
-	}
-
-	private function checkDeterminedRoutes(string $path, string $method): DeterminedRoute|null
-	{
-		$routes = $this->determinedRoutes[$method] ?? null;
-		if (!$routes) {
-			return null;
-		}
-
-		return $this->checkResolvedRoutes($routes, $path);
-
+    private function addStandardRoute(Route $route): void
+    {
+        foreach ($route->methods as $method) {
+            $this->routes[$method][$route->path] = $route;
+        }
     }
 
-	private function checkResolvedRoutes(array $routes, string $path): DeterminedRoute|null
-	{
-		foreach ($routes as $route) {
-			$result = $this->pathResolver->resolvePath($route->regex, $path);
-			if (!$result->isResolved()) {
-				continue;
-			}
+    private function addDeterminedRoute(Route $route): void
+    {
+        $determinedRoute = $this->determinedRouteFactory->createFromRoute($route);
+        foreach ($determinedRoute->methods as $method) {
+            $this->determinedRoutes[$method][] = $determinedRoute;
+        }
+    }
 
-			$resolvedSlugs = $result->getResolvedSlugs();
-			if (count($route->slugs) === count($resolvedSlugs)) {
-				$route->slugs = $resolvedSlugs;
+    private function checkRoutes(string $path, string $method): Route | null
+    {
+        return $this->routes[$method][$path] ?? null;
+    }
 
-				return $route;
-			}
-		}
+    private function checkDeterminedRoutes(string $path, string $method): DeterminedRoute | null
+    {
+        $routes = $this->determinedRoutes[$method] ?? null;
+        if (!$routes) {
+            return null;
+        }
+
+        return $this->checkResolvingRoutes($routes, $path);
+    }
+
+    private function checkResolvingRoutes(array $routes, string $path): DeterminedRoute | null
+    {
+        foreach ($routes as $route) {
+            $route = $this->resolveRoute($route, $path);
+            if ($route) {
+                return $route;
+            }
+        }
 
         return null;
-	}
+    }
+
+    private function resolveRoute(DeterminedRoute $route, string $path): DeterminedRoute | null
+    {
+        $result = $this->pathResolver->resolvePath($route->regex, $path);
+        if (!$result->isResolved()) {
+            return null;
+        }
+
+        $resolvedSlugs = $result->getResolvedSlugs();
+        if (count($route->slugs) !== count($resolvedSlugs)) {
+            return null;
+        }
+
+        $route->slugs = $resolvedSlugs;
+
+        return $route;
+    }
 }

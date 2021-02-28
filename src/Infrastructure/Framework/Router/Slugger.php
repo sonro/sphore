@@ -12,14 +12,13 @@ class Slugger
         if (false === $preg_result) {
             throw new \Exception('Unable to use regex in slugger');
         }
-        if ($preg_result) {
-			foreach ($matches as $match) {
-				$slugs[] = $match[1];
-			}
-            return $slugs;
-        }
 
-        return [];
+        $slugs = [];
+		foreach ($matches as $match) {
+			$slugs[] = $match[1];
+		}
+
+		return $slugs;
     }
 
 }
